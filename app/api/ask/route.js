@@ -26,9 +26,9 @@ import {
 // Lazy initialization — only create client when a request comes in
 // This prevents build-time failures when env vars aren't available
 let groq = null;
-function getGroq() {
+async function getGroq() {
   if (!groq) {
-    const Groq = require('groq-sdk').default;
+    const { default: Groq } = await import('groq-sdk');
     groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   }
   return groq;
@@ -79,7 +79,7 @@ export async function POST(request) {
     const contextText = relevantChunks.join('\n\n---\n\n');
 
     // ─── STEP 4: GENERATE — call Groq LLM ────────────────────────────────
-    const response = await getGroq().chat.completions.create({
+    const response = await (await getGroq()).chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         {
