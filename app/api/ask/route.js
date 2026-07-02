@@ -61,7 +61,10 @@ export async function POST(request) {
       });
     }
 
-    console.log(`Cache MISS — calling Groq LLM for: "${question}"`);
+    const keyPreview = process.env.GROQ_API_KEY
+      ? `set (starts with ${process.env.GROQ_API_KEY.slice(0, 8)}...)`
+      : 'NOT SET ❌';
+    console.log(`Cache MISS — calling Groq LLM for: "${question}" | API key: ${keyPreview}`);
 
     // ─── STEP 2: RETRIEVE relevant chunks ────────────────────────────────
     const relevantChunks = await searchChunks(documentId, question, 5);
