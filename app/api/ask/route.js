@@ -23,15 +23,28 @@ import {
   addToKnowledgeBase,
 } from '../../../lib/knowledgeBase.js';
 
-// Lazy initialization — only create client when a request comes in
-// This prevents build-time failures when env vars aren't available
-let groq = null;
-async function getGroq() {
-  if (!groq) {
-    const { default: Groq } = await import('groq-sdk');
-    groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+async function callGroq(messages) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      temperature: 0.1,
+      max_tokens: 1024,
+      top_p: 0.9,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Groq API error ${res.status}: ${err}`);
   }
-  return groq;
+
+  return res.json();
 }
 
 export async function POST(request) {
@@ -82,12 +95,10 @@ export async function POST(request) {
     const contextText = relevantChunks.join('\n\n---\n\n');
 
     // ─── STEP 4: GENERATE — call Groq LLM ────────────────────────────────
-    const response = await (await getGroq()).chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a smart personal assistant. The user has uploaded a document (usually a resume or profile) and you have access to its content.
+    const data = await callGroq([
+      {
+        role: 'system',
+        content: `You are a smart personal assistant. The user has uploaded a document (usually a resume or profile) and you have access to its content.
 
 Behave like this:
 
@@ -103,19 +114,15 @@ Behave like this:
 4. Never mention excerpts, document sections, or reference numbers. Talk like a human assistant, not a robot reading a file.
 
 5. Never refuse to answer a general knowledge question just because it's not in the document. You are allowed to use your full knowledge.`,
-        },
-        {
-          role: 'user',
-          content: `Here is content from the user's document:\n\n${contextText}\n\n---\n\nUser question: ${question}`,
-        },
-      ],
-      temperature: 0.1,
-      max_tokens: 1024,
-      top_p: 0.9,
-    });
+      },
+      {
+        role: 'user',
+        content: `Here is content from the user's document:\n\n${contextText}\n\n---\n\nUser question: ${question}`,
+      },
+    ]);
 
-    const answer = response.choices[0].message.content;
-    const tokensUsed = response.usage?.total_tokens || 0;
+    const answer = data.choices[0].message.content;
+    const tokensUsed = data.usage?.total_tokens || 0;
 
     // ─── STEP 5: AUTO-CACHE the answer ───────────────────────────────────
     addToKnowledgeBase(documentId, question, answer, 'llm_cached')
