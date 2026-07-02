@@ -1,0 +1,26 @@
+{
+  "name": "chat-with-your-document",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^15.4.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "groq-sdk": "^0.9.1",
+    "@huggingface/transformers": "^3.5.2",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.8.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38"
+  }
+}
