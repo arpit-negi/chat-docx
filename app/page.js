@@ -32,7 +32,6 @@ export default function ChatPage() {
   const [input, setInput] = useState('');               // Current message being typed
   const [isUploading, setIsUploading] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
-  const [showSources, setShowSources] = useState(null); // Which message's sources to show
 
   const messagesEndRef = useRef(null);                  // For auto-scrolling to bottom
   const fileInputRef = useRef(null);                    // Hidden file input element
@@ -255,29 +254,6 @@ export default function ChatPage() {
                       </div>
                     )}
 
-                    {/* "Show sources" button for AI messages */}
-                    {msg.sourceChunks?.length > 0 && (
-                      <div className="mt-2">
-                        <button
-                          onClick={() => setShowSources(showSources === i ? null : i)}
-                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                        >
-                          {showSources === i ? '▲ Hide' : '▼ Show'} {msg.sourceChunks.length} source excerpt{msg.sourceChunks.length !== 1 ? 's' : ''}
-                        </button>
-
-                        {/* Source chunks panel */}
-                        {showSources === i && (
-                          <div className="mt-2 space-y-2">
-                            {msg.sourceChunks.map((chunk, j) => (
-                              <div key={j} className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs text-gray-400 leading-relaxed">
-                                <span className="text-indigo-500 font-mono text-[10px] block mb-1">EXCERPT {j + 1}</span>
-                                {chunk}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
 
                   </div>
                 </div>
